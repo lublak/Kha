@@ -194,13 +194,8 @@ class LoaderImpl {
 	}
 
 	public static function loadBlobFromDescription(desc: Dynamic, done: Blob->Void, failed: AssetError->Void) {
-		#if kha_debug_html5
 		var file:String = desc.files[0];
-
-		if (file.startsWith("http://") || file.startsWith("https://")) {
-			loadRemote(desc, done, failed);
-		}
-		else if(file.startsWith("drop://")) {
+		if(file.startsWith("drop://")) {
 			var dropFile = dropFiles.get(file.substring(7));
 			if(dropFile == null) failed({ url: file, error: 'file not found' });
 			else {
@@ -211,6 +206,11 @@ class LoaderImpl {
 				reader.onerror = () -> failed({ url: file, error: reader.error});
 				reader.readAsArrayBuffer(dropFile);
 			}
+			return;
+		}
+		#if kha_debug_html5
+		if (file.startsWith("http://") || file.startsWith("https://")) {
+			loadRemote(desc, done, failed);
 		}
 		else {
 			var loadBlob = Syntax.code("window.electron.loadBlob");
