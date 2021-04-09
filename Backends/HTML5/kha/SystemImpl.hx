@@ -1,5 +1,8 @@
 package kha;
 
+import js.html.FileSystemDirectoryEntry;
+import js.html.FileSystemFileEntry;
+import js.html.FileSystemEntry;
 import js.Syntax;
 import js.html.webgl.GL;
 import js.html.WheelEvent;
@@ -471,10 +474,30 @@ class SystemImpl {
 
 		Browser.document.addEventListener("drop", function(event: js.html.DragEvent) {
 			event.preventDefault();
-			if (event.dataTransfer != null && event.dataTransfer.files != null) {
-				for (file in event.dataTransfer.files) {
-					LoaderImpl.dropFiles.set(file.name, file);
-					System.dropFiles("drop://" + file.name);
+			if (event.dataTransfer != null && event.dataTransfer.items != null) {
+				for (item in event.dataTransfer.items) {
+					if(Syntax.field(item, 'webkitGetAsEntry')) {
+						var entry:FileSystemEntry = Syntax.field(item, 'webkitGetAsEntry')();
+						if(entry != null) {
+							if(entry.isFile) {
+								cast(entry, FileSystemFileEntry).file(file -> {
+									LoaderImpl.dropFiles.set(entry.fullPath, null);
+									System.dropFiles("drop://" + entry.fullPath);
+								}, exception -> {
+									
+								});
+							} else if(entry.isDirectory) {
+								cast(entry, FileSystemDirectoryEntry).createReader().readEntries(entrys -> {
+									for (entry in entrys) {
+										
+									}
+								}, exception -> {
+									
+								});
+							}
+						}
+					}
+					
 				}
 			}
 		});
